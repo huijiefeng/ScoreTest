@@ -1,7 +1,6 @@
 # ScoreTest
 This is an R package containing the implementation of the score test function from the paper ''A General Theory of Hypothesis Tests and Confidence Regions for Sparse High Dimensional Models''
-by Yang Ning and Han Liu. 
-
+by Yang Ning and Han Liu.
 To install this package, please follow the following steps:
 
 1. Install package devtools from CRAN. 
@@ -21,9 +20,14 @@ library(devtools)
 install_github("Maosbrother/ScoreTest")
 ```
 
+<span style="color:red">**[Warning] It looks like after installing this package for the first time, the help page for the main function dScore() will not show properly. As far as I know this is an issue due to devtools and to fix this, simply restart your R session and the help page should look good. Sorry for the inconvenience**</span>
+
 To test the package, feel free to play with the following toy example (more examples in Demo.R):
 
 ```{R}
+library(mvtnorm)
+library(ScoreTest)
+
 #data generation
 d  <-  200
 a  <-  0
