@@ -1,3 +1,28 @@
+#' Lasso fit wrapper
+
+.fit_lasso_wrapper <- function(X,Y,maxit = 10000,nfolds = 5,family = 'gaussian',lambda = NULL,refit = FALSE,refit_ratio = 1){
+  cv.fit <- cv.glmnet(X,Y,maxit = maxit,nfolds = nfolds, family = family, lambda = lambda)
+  tmp <- which(cv.fit$glmnet.fit$lambda == cv.fit$lambda.min)
+  beta <- cv.fit$glmnet.fit$beta[,tmp]
+  if (sum(beta!=0) == 0){
+    tmp = which(cv.fit$nzero >= 1)[1]
+    beta <- cv.fit$glmnet.fit$beta[,tmp]
+  }
+  if (refit == TRUE){
+    idx_nonzero = which(beta != 0)
+    if(length(idx_nonzero) > floor(d*refit_ratio)){
+      tmp = which(cv.fit$nzero >= floor(d*refit_ratio))[1]
+      beta <- cv.fit$glmnet.fit$beta[,tmp]
+      idx_nonzero = which(beta != 0)
+    }
+    
+    beta_nonzero <- glm(Y~X[,idx_nonzero]-1,family = family)$coefficients
+    beta[idx_nonzero] <- beta_nonzero
+  }
+  return(beta)
+}
+
+
 #' Gaussian helper function
 #' @param beta Fitted value.
 #' @param Y Response vector.
@@ -6,7 +31,6 @@
 #' @param nfolds Number of folds for cross-validation.
 #' @keywords internal
 #' 
-
 .gaussian_helper <- function(beta,Y,X,coi,nfolds){
   ahat <- beta[coi] 
   ghat <- beta[-coi]  
@@ -17,10 +41,7 @@
   
   sig2 = mean((Y - X%*%beta)^2)
   
-  cv.fitw <- cv.glmnet(lg,la,nfolds = nfolds)
-  fitw <- cv.fitw$glmnet.fit
-  tmp <- which(fitw$lambda == cv.fitw$lambda.min)
-  what <- fitw$beta[,tmp]
+  what <- .fit_lasso_wrapper(lg,la,refit = F)
   
   res.n <- as.vector(Y-lg%*%ghat)
   S <- mean(res.n*la) - t(what)%*%(colMeans(res.n*lg))
@@ -48,10 +69,8 @@
   lg_w <- sapply(1:ncol(lg), function(i){
     weights*lg[,i]
   })
-  #fit w_hat
-  cv.fitw <- cv.glmnet(lg_w,la_w,nfolds = nfolds)
-  tmp <- which(cv.fitw$glmnet.fit$lambda == cv.fitw$lambda.min)
-  what <- cv.fitw$glmnet.fit$beta[,tmp]
+  
+  what <- .fit_lasso_wrapper(lg_w,la_w,refit = F)
   
   sig2 <- mean(la_w * (la_w - lg_w%*%what))
   
@@ -79,10 +98,8 @@
   lg_w <- sapply(1:ncol(lg), function(i){
     weights*lg[,i]
   })
-  #fit w_hat
-  cv.fitw <- cv.glmnet(lg_w,la_w,nfolds = nfolds)
-  tmp <- which(cv.fitw$glmnet.fit$lambda == cv.fitw$lambda.min)
-  what <- cv.fitw$glmnet.fit$beta[,tmp]
+  
+  what <- .fit_lasso_wrapper(lg_w,la_w,refit = F)
   
   sig2 <- mean(la_w * (la_w - lg_w%*%what))
   

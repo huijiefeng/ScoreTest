@@ -8,7 +8,8 @@
 #' @param nfolds Number of folds for cross validation. The default is 5.
 #' @param lambda Tuning parameter for fitting coefficients. The default is NULL that uses default grid from glmnet.
 #' @param family 'gaussian', 'binomial' or 'poisson' for linear, logistic and poisson regression, respectively.
-#' @param refit Logical parameter. If refit is TRUE then for coefficient estimates, the function will first use glmnet for variable selection, and then redo the regression using only the selected variables. The default is FALSE.
+#' @param refit Logical parameter. If refit is TRUE then for coefficient estimates, the function will first use glmnet for variable selection, and then redo the regression using only the selected variables. The default is TRUE.
+#' @param refit_ratio When refitting, if more than this faction of variables are selected, then we apply a hard-thresholding to select only this faction of variables. The default is 5%.
 #' @return A list containing:
 #' \itemize{ 
 #' \item fitted_value - The fitted coefficients using LASSO.
@@ -24,7 +25,7 @@
 #' dScore(Y, X, 1,family = 'gaussian')$pval
 
 dScore <- function(Y, X, coi, beta = NULL,maxit = 100000, nfolds = 5, lambda = NULL,family = 'gaussian',
-                   refit = FALSE){
+                   refit = TRUE, refit_ratio = 0.05){
   
   # Lots of error messages
   if(!is.numeric(Y)){
@@ -72,14 +73,27 @@ dScore <- function(Y, X, coi, beta = NULL,maxit = 100000, nfolds = 5, lambda = N
       stop('Dimensions of coefficient vector and data matrix do not match')
     }
   } else{
-      cv.fit <- cv.glmnet(X,Y,maxit = maxit,nfolds = nfolds, family = family, lambda = lambda)
-      tmp <- which(cv.fit$glmnet.fit$lambda == cv.fit$lambda.min)
-      beta <- cv.fit$glmnet.fit$beta[,tmp]
-      if (refit == TRUE){
-        idx_nonzero = which(beta != 0)
-        beta_nonzero <- glm(Y~X[,idx_nonzero]-1,family = family)$coefficients
-        beta[idx_nonzero] <- beta_nonzero
-      }
+      # cv.fit <- cv.glmnet(X,Y,maxit = maxit,nfolds = nfolds, family = family, lambda = lambda)
+      # tmp <- which(cv.fit$glmnet.fit$lambda == cv.fit$lambda.min)
+      # beta <- cv.fit$glmnet.fit$beta[,tmp]
+      # if (sum(beta!=0) == 0){
+      #   tmp = which(cv.fit$nzero >= 1)[1]
+      #   beta <- cv.fit$glmnet.fit$beta[,tmp]
+      # }
+      # if (refit == TRUE){
+      #   idx_nonzero = which(beta != 0)
+      #   if(length(idx_nonzero) > floor(d*refit_ratio)){
+      #     #warning(paste('hard-thresholding applied to select top',floor(d*refit_ratio),'variables',sep = ' '))
+      #     tmp = which(cv.fit$nzero >= floor(d*refit_ratio))[1]
+      #     beta <- cv.fit$glmnet.fit$beta[,tmp]
+      #     idx_nonzero = which(beta != 0)
+      #   }
+      #   
+      #   beta_nonzero <- glm(Y~X[,idx_nonzero]-1,family = family)$coefficients
+      #   beta[idx_nonzero] <- beta_nonzero
+      # }
+    beta <- .fit_lasso_wrapper(X,Y,maxit,nfolds,family,lambda,refit,refit_ratio)
+      
     } 
   
   
