@@ -17,7 +17,7 @@ library(devtools)
 3. Install ScoreTest.
 
 ```{R}
-install_github("Maosbrother/ScoreTest")
+install_github("huijiefeng/ScoreTest")
 ```
 
 <span style="color:red">**[Warning] It looks like after installing this package for the first time, the help page for the main function dScore() will not show properly. As far as I know this is an issue due to devtools and to fix this, simply restart your R session and the help page should look good. Sorry for the inconvenience**</span>
