@@ -5,7 +5,8 @@
 \title{Decorrelated Score Test.}
 \usage{
 dScore(Y, X, coi, beta = NULL, maxit = 1e+05, nfolds = 5,
-  lambda = NULL, family = "gaussian", refit = FALSE)
+  lambda = NULL, family = "gaussian", refit = TRUE,
+  refit_ratio = 0.05)
 }
 \arguments{
 \item{Y}{The response vector.}
@@ -24,7 +25,9 @@ dScore(Y, X, coi, beta = NULL, maxit = 1e+05, nfolds = 5,
 
 \item{family}{'gaussian', 'binomial' or 'poisson' for linear, logistic and poisson regression, respectively.}
 
-\item{refit}{Logical parameter. If refit is TRUE then for coefficient estimates, the function will first use glmnet for variable selection, and then redo the regression using only the selected variables. The default is FALSE.}
+\item{refit}{Logical parameter. If refit is TRUE then for coefficient estimates, the function will first use glmnet for variable selection, and then redo the regression using only the selected variables. The default is TRUE.}
+
+\item{refit_ratio}{When refitting, if more than this faction of variables are selected, then we apply a hard-thresholding to select only this faction of variables. The default is 5%.}
 }
 \value{
 A list containing:
